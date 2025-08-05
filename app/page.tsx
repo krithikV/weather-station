@@ -171,14 +171,14 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "pending">("pending")
 
-  // Load initial weather data for current location
+  // Load initial weather data for current location or fallback to London
   useEffect(() => {
     const loadInitialWeather = async () => {
       try {
         setIsLoading(true)
         setError(null)
         
-        let location: string
+        let location = "London" // Default fallback
         
         // Try to get current location
         try {
@@ -196,7 +196,7 @@ export default function HomePage() {
             console.log("IP location found:", location)
           } catch (ipError) {
             console.error("Error getting IP location:", ipError)
-            throw new Error("Unable to determine location. Please search for a city.")
+            // Continue with default location (London)
           }
         }
         
@@ -211,7 +211,57 @@ export default function HomePage() {
         setAstronomyData(astronomy)
       } catch (error) {
         console.error("Error loading initial weather:", error)
-        setError("Unable to load weather data. Please search for a location.")
+        setError("Failed to load weather data. Please try again.")
+        // Fallback to dummy data if API fails
+        setCurrentWeather({
+          location: {
+            name: "London",
+            region: "England",
+            country: "UK",
+            lat: 51.5074,
+            lon: -0.1278,
+            tz_id: "Europe/London",
+            localtime: "2025-08-05 16:00",
+          },
+          current: {
+            temp_c: 22,
+            feelslike_c: 21,
+            is_day: 1,
+            condition: {
+              text: "Partly Cloudy",
+              icon: "CloudSun",
+              code: 1003,
+            },
+            wind_kph: 10,
+            wind_dir: "NW",
+            gust_kph: 15,
+            humidity: 65,
+            cloud: 50,
+            pressure_mb: 1012,
+            precip_mm: 0,
+            vis_km: 10,
+            uv: 5,
+          },
+        })
+        setForecastData([])
+        setAstronomyData({
+          location: {
+            name: "London",
+            region: "England",
+            country: "UK",
+          },
+          astronomy: {
+            astro: {
+              sunrise: "06:00 AM",
+              sunset: "08:00 PM",
+              moonrise: "09:00 PM",
+              moonset: "07:00 AM",
+              moon_phase: "Waxing Gibbous",
+              moon_illumination: "85",
+            },
+          },
+        })
+      } finally {
         setIsLoading(false)
       }
     }
@@ -279,7 +329,7 @@ export default function HomePage() {
           {/* Header Section */}
           <div className="text-center mb-4 sm:mb-6 lg:mb-8">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 sm:mb-6">
-              Weather Station
+              Weather Dashboard
             </h1>
             <SearchInput onWeatherUpdate={handleWeatherUpdate} />
             {locationPermission === "denied" && (
