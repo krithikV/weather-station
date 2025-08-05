@@ -200,18 +200,37 @@ export default function HomePage() {
           }
         }
         
+        console.log("Loading weather for location:", location)
+        
         const [weather, forecast, astronomy] = await Promise.all([
           getCurrentWeather(location),
           getForecast(location),
           getAstronomy(location)
         ])
         
+        console.log("Weather data loaded successfully")
         setCurrentWeather(weather)
         setForecastData(forecast)
         setAstronomyData(astronomy)
       } catch (error) {
         console.error("Error loading initial weather:", error)
-        setError("Failed to load weather data. Please try again.")
+        
+        // Provide more specific error messages
+        let errorMessage = "Failed to load weather data. Please try again."
+        if (error instanceof Error) {
+          if (error.message.includes("API rate limit")) {
+            errorMessage = "Weather service is busy. Please try again in a few minutes."
+          } else if (error.message.includes("Invalid API key")) {
+            errorMessage = "Weather service configuration error. Please contact support."
+          } else if (error.message.includes("timeout")) {
+            errorMessage = "Weather service is slow. Please try again."
+          } else if (error.message.includes("Network error")) {
+            errorMessage = "Network connection issue. Please check your internet."
+          }
+        }
+        
+        setError(errorMessage)
+        
         // Fallback to dummy data if API fails
         setCurrentWeather({
           location: {
